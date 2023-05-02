@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %>
+<body>
+    <div class="articles-container">
+        <!-- Categories Dropdown Menu -->
+        <div class="article-categories-section" data-cat="<%= category %>">
+            <div class="article-categories-container">
+                <button class="show-categories"><i class="fa-solid fa-sort-down"></i></button>
+                <% if(!category) { %>
+                    <h4>All</h4>
+                <% } else { %>
+                    <h4><%= category.replace(category[0] , category[0].toUpperCase()).replace("-" , " ").replace("-" , " ") %> </h4>
+                <% } %>
+
+                <ul class="article-categories">
+                    <li class="article-category">
+                        <a class="article-category-btn first-btn" href="/dashboard/manage-articles/articles">
+                            <p class="article-category-name">All</p>
+                        </a>
+                    </li>
+                    <% if(articleCategories.length !== 0) { %>
+                        <% articleCategories.forEach((articleCategory) => { %>
+                            <li class="article-category">
+                                <a class="article-category-btn" href=<%= "/dashboard/manage-articles/articles?category=" + articleCategory.name %>>
+                                    <p class="article-category-name"><%= articleCategory.name %></p>
+                                </a>
+                            </li>
+                        <% }) %>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Articles with Statistics Bar -->
+        <% if(articles.length > 0) { %>
+            <!-- Statistics -->
+            <div class="statistics-container">
+                <div class="stat-wrapper all">
+                    <i class="fa-solid fa-globe"></i>
+                    <p>All: </p><%= articles.length %> 
+                </div>
+                <div class="stat-wrapper sold">
+                    <i class="fa-solid fa-circle red-light"></i>
+                    <p class="sold-index">Sold: </p>
+                </div>
+                <div class="stat-wrapper not-sold">
+                    <i class="fa-solid fa-circle green-light"></i>
+                    <p class="available-index">Available: </p>
+                </div>
+            </div>
+
+            <!-- Articles -->
+            <div class="articles">
+                <% articles.forEach((article) => { %>
+                    <div class="article-element">
+                        <button class="remove-article" title="Delete Article" data-id=<%= article._id %>><i class="fa-solid fa-circle-xmark"></i></button>
+                        <figure class="article-header">
+                            <img src=<%= article.image_thumbnail %> alt=<%= article.name %> />
+                        </figure>
+                        <div class="article-body">
+                            <h3 class="article-name"><%= article.name %></h3>
+                            <p><%= article.price %> DA</p>
+                            <button class="settings-btn" data-id=<%= article._id %>><i class="fa-solid fa-gear"></i></button>
+                            <% if(article.isSold) { %> 
+                                <span class="sold-out"><i class="fa-solid fa-circle"></i></span>
+                            <% } else { %>
+                                <span class="not-sold-out"><i class="fa-solid fa-circle"></i></span>
+                            <% } %>  
+                        </div>
+                    </div>
+                <% }) %> 
+            </div>
+        <% } else { %>
+            <div class="empty-articles">There are no articles to show.</div>
+        <% } %> 
+
+        <!-- Manage Articles Button -->
+        <a class="manage-articles-btn" href="/dashboard/manage-articles">
+            <i class="fa-solid fa-circle-left"></i>
+            <p>Back</p>
+        </a>
+    </div>
+
+    <!-- Popup -->
+    <%- include("./partials/popup.ejs") %>
+
+    <script>
+        //--------------- DOM Elements
+        // Categories Bar
+        const articleCategoriesContainer = document.querySelector('.article-categories-section');
+        const articleCategoriesListEl = document.querySelectorAll('.article-category');
+        const showCategories = document.querySelector('.show-categories');
+        // Statistics Bar
+        const soldIndexText = document.querySelector('.sold-index');
+        const availableIndexText = document.querySelector('.available-index');
+        //Articles
+        const removeArticleBtns = document.querySelectorAll('.remove-article');
+        const modifyArticleBtns = document.querySelectorAll('.settings-btn');
+        //Popup
+        const popupContainer = document.querySelector('.popup-container');
+        
+        //--------------- Function Calls
+
+        
+        
+        //--------------- Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update Statistics Bar if There are Articles
+            if(soldIndexText) {
+                const allNum = removeArticleBtns;
+                const soldOutNum = document.querySelectorAll('.sold-out');
+                const availableNum = allNum.length - soldOutNum.length;
+
+                //Update Index DOM Elements
+                soldIndexText.innerText = "Sold: " + soldOutNum.length;
+                availableIndexText.innerText = "Available: " + availableNum;
+            }
+
+            // Remove the element Selected in the Categories dropdown menu
+            if(articleCategoriesContainer.dataset.cat) {
+                articleCategoriesListEl.forEach((categoryListEl) => {
+                    if(categoryListEl.innerText.toLowerCase().replace(" ", "-") == articleCategoriesContainer.dataset.cat) {
+                        categoryListEl.remove();
+                    }
+                })
+            } else {
+                articleCategoriesListEl.forEach((categoryListEl) => {
+                    if(categoryListEl.innerText === "All") {
+                        categoryListEl.remove();
+                    }
+                })
+            }
+        })
+
+        showCategories.addEventListener('click', () => {
+            articleCategoriesContainer.classList.toggle('article-categories-show-menu');
+        })
+        document.addEventListener('click', (e) => {
+            if(!e.target.classList.contains('show-categories') && articleCategoriesContainer.classList.contains('article-categories-show-menu')) {
+                articleCategoriesContainer.classList.remove('article-categories-show-menu');
+            }
+        })
+
+        // Remove Article Boutons Event Listeners
+        removeArticleBtns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                // Show popup
+                popupContainer.style.display = "flex";
+
+                // Send Delete Request
+                fetch(`/dashboard/manage-articles/articles/${btn.dataset.id}`, {
+                    method: 'DELETE'
+                })
+                    .then((response) => response.json())
+                    .then((data) => { window.location.href = data.redirect })
+                    .catch((err) => console.log(err));
+            })
+        })
+
+        // Modify Article Boutons Event Listeners
+        modifyArticleBtns.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                // DOM Element + Text
+                const articlePriceEl = btn.previousElementSibling;
+                let articlePrice = articlePriceEl.textContent.replace(" DA", "");
+
+                // Replace the Price Element by an Input
+                articlePriceEl.innerHTML = `
+                    <div class="input-price-wrapper">
+                        <input type="text" class="input-price" value="${articlePrice}" />
+                        <button class="confirm-price-change"><i class="fa-solid fa-square-check"></i></button>
+                    </div>
+                `;
+
+                // Remove Input Element when Clicking
+                articlePriceEl.querySelector('.confirm-price-change').addEventListener('click', (e) => {
+                    if(!e.target.classList.contains('settings-btn') && !e.target.classList.contains('input-price')) {
+                        // Show popup
+                        popupContainer.style.display = "flex";
+
+                        // Update Article price value
+                        articlePrice = articlePriceEl.querySelector('.input-price').value;
+
+                        console.log(articlePrice);
+                        articlePriceEl.innerHTML = `<p>${articlePrice} DA</p>`;
+
+                        // Update the New Article Price in the Database
+                        fetch(`/api/json/articles/${btn.dataset.id}/${articlePrice}`, {
+                                method: 'PUT'
+                            })
+                            .then((response) => {
+                                // Remove popup
+                                popupContainer.style.display = "none"
+                                // Update UI
+                                articlePriceEl.innerHTML = `<p>${articlePrice} DA</p>`;
+                            })
+                            .catch((err) => console.log(err));
+                    }
+                })
+
+                // Remove Input Element when pressing on Enter
+                articlePriceEl.querySelector('.input-price').addEventListener('keyup', (e) => {
+                    if(e.key == "Enter") {
+                        // Show popup
+                        popupContainer.style.display = "flex";
+
+                        // Update Article price value
+                        articlePrice = e.target.value;
+
+                        // Update the New Article Price in the Database
+                        fetch(`/api/json/articles/${btn.dataset.id}/${articlePrice}`, {
+                                method: 'PUT'
+                            })
+                            .then((response) => {
+                                // Remove popup
+                                popupContainer.style.display = "none"
+                                // Update UI
+                                articlePriceEl.innerHTML = `<p>${articlePrice} DA</p>`;
+                            })
+                            .catch((err) => console.log(err));
+                    }
+                })
+            })
+        })
+
+        //--------------- Functions
+
+    </script>
+</body>
+</html>

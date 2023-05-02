@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %>
+<body>
+    <%- include("./partials/sidebar.ejs") %>
+
+    <div class="main">
+        <!-- Form Container -->
+        <div class="form-container">
+            <button class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+
+            <h4>Add Article</h4>
+
+            <!-- Form -->
+            <form id="myForm">
+                <div class="form-group">
+                    <input type="text" placeholder="Product Name" name="name" required />
+                    <label for="name" class="form-label">Product Name</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Product Size" name="size" required />
+                    <label for="size" class="form-label">Product Size</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Product Price" name="price" required />
+                    <label for="price" class="form-label">Product Price</label>
+                </div>
+                <select name="category" required>
+                    <option value="">Product Category</option>
+                    <% if(articleCategories.length !== 0) { %>
+                        <% articleCategories.forEach((articleCategory) => { %>
+                            <option value="<%= articleCategory.name %>"><%= articleCategory.name.replace(/-/g, " ") %></option>
+                        <% }) %>
+                    <% } %>
+                </select>
+                <!-- Upload Elements -->
+                <div class="upload-area">
+                    <input type="file" class="upload-input" name="article-images" multiple required />
+                    <button type="button" class="upload-btn"><i class="fa-solid fa-images"></i></button>
+                    <p>Browse Photos to Upload</p>
+                </div>
+                <button class="submit-btn">Submit</button>
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <progress class="progress-bar" value="0" max="100"></progress>
+                    <label for="progress-bar">0%</label>
+                </div>
+            </form>
+        </div>
+
+        <!-- Article List Button -->
+        <a class="article-list-btn" href="/dashboard/manage-articles/articles">
+            <p>Article List</p>
+            <i class="fa-solid fa-circle-right"></i>
+        </a>
+    </div>
+
+    <script>
+        //--------------- DOM Elements
+        //Form
+        const myForm = document.getElementById('myForm');
+        const submitBtn = document.querySelector('.submit-btn');
+        //Upload Elements
+        const fileInput = document.querySelector('.upload-input');
+        const uploadBtn = document.querySelector('.upload-area');
+        const uploadTextEl = uploadBtn.querySelector('p');
+        //Progress Bar
+        const progressContainer = document.querySelector('.progress-container'); 
+        const progressBar = document.querySelector('.progress-bar');
+        //Sidebar
+        const hamburgerBtn = document.querySelector('.hamburger-btn');
+        const categoriesSection = document.querySelector('.categories-section');
+        const categoriesContainer = document.querySelector('.categories-container');
+        const manageBtn = document.querySelector('.manage-btn');
+        
+        //--------------- Function Calls
+        setSidebarBtnClass();
+        
+        //--------------- Event Listeners
+        myForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Images
+            const userImgs = fileInput.files;
+
+            // Form Data
+            const formData = new FormData(myForm);
+            formData.append('article-images', userImgs);
+
+            const req = new XMLHttpRequest();
+
+            req.open('POST', "/dashboard/manage-articles");
+
+            req.upload.addEventListener('progress', (e) => {
+                // Show Progress Container
+                submitBtn.remove();
+                progressContainer.style.display = "flex";
+                
+                const percentComplete = (e.loaded / e.total) * 100;
+
+                progressBar.setAttribute("value", percentComplete);
+                progressBar.nextElementSibling.innerText = Math.round(percentComplete) + "%";
+            })
+
+            req.addEventListener('load', () => {
+                console.log("Upload Complete");
+
+                // Reload the page with updated Articles
+                window.location.href = "/dashboard/manage-articles";
+            })
+
+            req.send(formData);
+        })
+
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        })
+
+        fileInput.addEventListener('change', (e) => {
+            uploadTextEl.innerText = `${e.target.files.length} Photos selected`;
+        })
+
+        hamburgerBtn.addEventListener('click', () => {
+            categoriesSection.classList.toggle('show');
+            hamburgerBtn.classList.toggle('translate-btn');
+            categoriesContainer.classList.toggle('show-menu');
+        })
+        categoriesSection.addEventListener('click', (e) => {
+            if(e.target.classList.contains('categories-section')) {
+                categoriesSection.classList.toggle('show');
+                hamburgerBtn.classList.toggle('translate-btn');
+                categoriesContainer.classList.toggle('show-menu');
+            }
+        })
+
+        //--------------- Functions
+        function setSidebarBtnClass() {
+            // Add active class
+            manageBtn.classList.add('active');
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/icon2.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/dashboard-styles.css">
+    <title>Dashboard — <%= title %></title>
+</head>
+
+<body>
+    <%- include("./partials/sidebar.ejs") %>
+
+    <div class="main">
+        <%- include("./partials/navbar.ejs") %>
+
+        <button class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+
+        <main class="dashboard-container">
+            <h1>Dashboard</h1>
+            <section class="stats-blocks">
+                <div class="stats-block">
+                    <figure class="first-figure"><i class="fa-solid fa-truck-fast"></i></figure>
+                    <h4>Processed Orders</h4>
+                    <p><%= data.processedOrders %> </p>
+                </div>
+                <div class="stats-block">
+                    <figure class="second-figure"><i class="fa-solid fa-suitcase"></i></figure>
+                    <h4>Sales</h4>
+                    <p class="sales-num"><%= data.sales %></p>
+                </div>
+                <div class="stats-block">
+                    <figure class="third-figure"><i class="fa-solid fa-sack-dollar"></i></figure>
+                    <h4>Total Income</h4>
+                    <p class="sales-num"><%= data.totalSales %> DA</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        //--------------- DOM Elements
+        //Sidebar
+        const hamburgerBtn = document.querySelector('.hamburger-btn');
+        const categoriesSection = document.querySelector('.categories-section');
+        const categoriesContainer = document.querySelector('.categories-container');
+        const dashboardBtn = document.querySelector('.dashboard-btn');
+
+        //--------------- Variables
+
+
+        //--------------- Function Calls
+        setSidebarBtnClass();
+        
+        //--------------- Event Listeners
+        hamburgerBtn.addEventListener('click', () => {
+            categoriesSection.classList.toggle('show');
+            hamburgerBtn.classList.toggle('translate-btn');
+            categoriesContainer.classList.toggle('show-menu');
+        })
+        categoriesSection.addEventListener('click', (e) => {
+            if(e.target.classList.contains('categories-section')) {
+                categoriesSection.classList.toggle('show');
+                hamburgerBtn.classList.toggle('translate-btn');
+                categoriesContainer.classList.toggle('show-menu');
+            }
+        })
+
+        //--------------- Functions
+        function setSidebarBtnClass() {
+            // Add active class
+            dashboardBtn.classList.add('active');
+        }
+
+    </script>
+</body>
+</html>

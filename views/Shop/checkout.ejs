@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<%- include("./partials/head.ejs") %>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <%- include("./partials/navbar.ejs") %>
+
+    <div class="checkout">
+        <div class="checkout-container">
+            <h4>Client Information</h4>
+
+            <form id="myForm">
+                <div class="upper-part">
+                    <p>Enter the following information to receive your package:</p>
+                    <div class="name">
+                        <div class="form-group">
+                            <input type="text" placeholder="First Name(الاسم)" name="firstName" required />
+                            <label for="firstName" class="form-label">First Name(الاسم)</label>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" placeholder="Last Name(اللقب)" name="lastName" required />
+                            <label for="lastName" class="form-label">Last Name(اللقب)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="Address(العنوان)" name="address" required />
+                        <label for="address" class="form-label">Address(العنوان)</label>
+                    </div>
+                    <select class="select-wilaya" name="wilaya" required>
+                        <option value="">Wilaya(الولاية)</option>
+                        <% wilayas.forEach((wilaya) => { %>
+                            <option value="<%= wilaya %>"><%= wilaya %></option>
+                        <% }) %>
+                    </select>
+                    <div class="form-group">
+                        <input type="text" placeholder="Phone Number(رقم الهاتف)" name="phoneNumber" required />
+                        <label for="phoneNumber" class="form-label phone-num-label">Phone Number(رقم الهاتف)</label>
+                    </div>
+                    <input type="hidden" class="hidden-input" value="" name="articles" />
+                    <input type="hidden" class="hidden-input2" value="" name="total" />
+                </div>
+
+                <button class="confirm-btn" type="submit">Confirm</button>
+            </form>
+        </div>
+    </div>
+
+    <%- include("./partials/footer.ejs") %> 
+    
+    <%- include("./partials/popup.ejs") %>
+
+    <script>
+        // DOM elements
+        //Navbar
+        const cartNumber = document.querySelector('.cart-number');
+        // Popup
+        const popupContainer = document.querySelector('.popup-container');
+        const popupText = document.querySelector('.popup-text');
+        const popupBtn = document.querySelector('.popup-btn');
+        // DOM Form elements
+        const myForm = document.getElementById('myForm');
+        const formUpperPart = document.querySelector('.upper-part');
+        const selectWilaya = document.querySelector('.select-wilaya');
+        const hiddenInputCart = document.querySelector('.hidden-input');
+        const hiddenInputTotal = document.querySelector('.hidden-input2');
+        const confirmBtn = document.querySelector('.confirm-btn');
+        
+        // Variables
+        let total = 0;
+
+        // Function Calls
+        setCart();
+
+        // Event Listeners
+        myForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Display Loader inside Form
+            const loader = document.createElement('div');
+            loader.classList.add('circle');
+            confirmBtn.remove();
+            myForm.appendChild(loader);
+
+            // Form Data
+            const formData = new FormData(myForm);
+
+            // Checking Articles Availability
+            let cart = [];
+            let localCart = getLocalCart();
+
+            for(let i = 0; i < localCart.length; i++) {
+                const cartArticle = await getArticleById(localCart[i]);
+
+                if(cartArticle !== null) {
+                    if(cartArticle.isSold === false) {
+                        cart.push(cartArticle._id);
+                    }
+                }
+            }
+
+            if(cart.length === localCart.length) {
+                fetch('/shop/checkout', {
+                    method: 'POST',
+                    body: formData
+                }).then((resp) => resp.json())
+                .then((data) => {
+                    // Empty Cart
+                    localStorage.removeItem('cart')
+                    // Show Popup
+                    popupContainer.querySelector('.icon').classList.remove('fa-circle-check');
+                    popupContainer.querySelector('.icon').classList.add('fa-hand-holding-heart');
+                    popupContainer.querySelector('.icon').style.color = "#e0c172";
+                    popupText.innerText = "Thank you for your purchase, your package will arrive soon.";
+                    popupBtn.innerText = "Thank you";
+                    popupContainer.style.display = "flex";
+
+                    popupBtn.addEventListener('click', () => {
+                        // Redirect to Shop
+                        window.location.href = data.redirect;
+                    })
+                });
+
+            } else {
+                // Show Popup
+                popupContainer.querySelector('.icon').classList.remove('fa-circle-check');
+                popupText.innerText = "Error: There is something wrong with you cart.";
+                popupBtn.innerText = "Return to Shop";
+                popupContainer.style.display = "flex";
+
+                popupBtn.addEventListener('click', () => {
+                    // Redirect to Shop
+                    window.location.href = "/";
+                })
+            }
+        })
+
+        popupBtn.addEventListener('click', () => {
+            popupContainer.style.display = "none";
+        })
+
+        selectWilaya.addEventListener('change', () => {
+            setShippingEl();
+        })
+
+        // Functions
+        async function getArticleById(id) {
+            const response = await fetch(`/api/json/articles/${id}`);
+            const data = await response.json();
+
+            return data.article;
+        }
+
+        async function setCart() {
+            let cart = [];
+            let localCart = getLocalCart();
+            let cartArticles = [];
+
+            if(localCart.length !== 0) {             
+                for(let i = 0; i < localCart.length; i++) {
+                    const cartArticle = await getArticleById(localCart[i]);
+
+                    if(cartArticle !== null) {
+                        if(cartArticle.isSold === false) {
+                            cart.push(cartArticle._id);
+                            cartArticles.push(cartArticle);
+                        }
+                    }
+                }
+            } else {
+                cart = localCart;
+            }
+
+            // Update Navbar's Cart Icon
+            cartNumber.innerText = cart.length;
+            // Set an initial value to Cart in Local Storage
+            localStorage.setItem('cart', JSON.stringify(cart));
+            // If Cart is Empty you can't enter info
+            if(cart.length === 0) {
+                formEl.innerHTML = `
+                    <i class="fa-solid fa-ban"></i>
+                    <p>Your cart is empty you can't proceed with this step, go back to shop and add products to your cart.<p>
+                `
+                document.querySelector('.checkout-container').style.cssText = "text-align: center; justify-content: center;font-size: 1.2rem;";
+                formEl.querySelector('i').style.cssText = "color: red;font-size: 8rem;margin: 1rem 0;";
+            }
+            // Set Hidden Input value
+            if(cart.length === 0) {
+                hiddenInputCart.value = "";
+            } else {
+                hiddenInputCart.value = JSON.stringify(cart);
+            }
+
+            // Calculate total and set its value
+            cartArticlesPrices = [];
+            cartArticles.forEach((article) => cartArticlesPrices.push(article.price));
+
+            total = cartArticlesPrices.reduce((p, n) => p + n, 0);
+        }
+
+        function getLocalCart() {
+            return JSON.parse(localStorage.getItem('cart')) === null ? [] : JSON.parse(localStorage.getItem('cart'));
+        }
+        
+        function setShippingEl() {
+            if(selectWilaya.value === "16-Alger") {
+                // Clear Everything
+                document.querySelector('.select-shipping') ? document.querySelector('.select-shipping').remove() : "";
+                document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+                // Create and Append Select Element
+                const selectShipping = document.createElement('select');
+                selectShipping.setAttribute("required", "");
+                selectShipping.setAttribute("name", "shippingType");
+                selectShipping.classList.add('select-shipping');
+
+                selectShipping.innerHTML = `
+                    <option value="">Shipping Type(نوع التوصيل)</option>
+                    <option value="a domicile">à domicile (300da)</option>
+                `
+
+                formUpperPart.appendChild(selectShipping);
+
+                // Shipping Type Select Element Event Listener
+                selectShipping.addEventListener('change', () => {
+                    if(selectShipping.value === "a domicile") {
+                        // Clear Text
+                        document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+                        // Create and Append Text Element
+                        const totalText = document.createElement('p');
+                        totalText.classList.add('total-text');
+
+                        totalText.innerHTML = `Total: ${total + 300} DA`
+                        hiddenInputTotal.value = JSON.stringify(total + 300);
+
+                        formUpperPart.appendChild(totalText);
+                    } else {
+                        // Clear Text
+                        document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+                    }
+                })
+
+            } else if(selectWilaya.value === "") {
+                // Clear Everything
+                document.querySelector('.select-shipping') ? document.querySelector('.select-shipping').remove() : "";
+                document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+            }
+            else {
+                // Clear Everything
+                document.querySelector('.select-shipping') ? document.querySelector('.select-shipping').remove() : "";
+                document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+                // Create and Append Select Element
+                const selectShipping = document.createElement('select');
+                selectShipping.setAttribute("required", "");
+                selectShipping.setAttribute("name", "shippingType");
+                selectShipping.classList.add('select-shipping');
+
+                selectShipping.innerHTML = `
+                    <option value="">Shipping Type(نوع التوصيل)</option>
+                    <option value="a domicile">à domicile (900da)</option>
+                    <option value="stop desk">Stop Desk (450da)</option>
+                `
+
+                formUpperPart.appendChild(selectShipping);
+
+                // Shipping Type Select Element Event Listener
+                selectShipping.addEventListener('change', () => {
+                    if(selectShipping.value === "a domicile") {
+                        // Clear Text
+                        document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+                        // Create and Append Text Element
+                        const totalText = document.createElement('p');
+                        totalText.classList.add('total-text');
+
+                        totalText.innerHTML = `Total: ${total + 900} DA`
+                        hiddenInputTotal.value = JSON.stringify(total + 900);
+
+                        formUpperPart.appendChild(totalText);
+                    } else if(selectShipping.value === "stop desk") {
+                        // Clear Text
+                        document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+                        // Create and Append Text Element
+                        const totalText = document.createElement('p');
+                        totalText.classList.add('total-text');
+
+                        totalText.innerHTML = `Total: ${total + 450} DA`
+                        hiddenInputTotal.value = JSON.stringify(total + 450);
+
+                        formUpperPart.appendChild(totalText);
+                    } else {
+                        // Clear Text
+                        document.querySelector('.total-text') ? document.querySelector('.total-text').remove() : "";
+                    }
+                })
+            }
+        }
+    </script>
+</body>
+</html>

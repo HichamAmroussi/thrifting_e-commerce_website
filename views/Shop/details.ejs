@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %> 
+<body>
+    <!-- Top Navigation Bar -->
+    <%- include("./partials/navbar.ejs") %> 
+    
+    <div class="article-container">
+        <div class="article-info" data-id=<%= article._id %> >
+            <div class="article-card">
+                <h1><%= article.name %> </h1>
+                <p class="size-text">Size: <%= article.size %></p>
+                <p><%= article.price %> DA</p>
+                <% if(article.isSold) { %> 
+                    <div class="sold-out2">SOLD OUT</div>
+                <% } %> 
+            </div>
+            <button class="add-to-cart">Add to cart</button>
+        </div>
+        <div class="article-images">
+            <img src=<%= article.image0 %>  alt=<%= article.name %>  />
+            <% if(article.image1) { %> 
+                <img src=<%= article.image1 %>  alt=<%= article.name %>  />
+            <% } %> 
+            <% if(article.image2) { %> 
+                <img src=<%= article.image2 %>  alt=<%= article.name %>  />
+            <% } %>
+            <% if(article.image3) { %> 
+                <img src=<%= article.image3 %>  alt=<%= article.name %>  />
+            <% } %> 
+            <% if(article.image4) { %> 
+                <img src=<%= article.image4 %>  alt=<%= article.name %>  />
+            <% } %> 
+        </div>
+    </div>
+
+    <%- include("./partials/footer.ejs") %> 
+    
+    <%- include("./partials/popup.ejs") %>
+
+    <script>
+        // DOM elements
+        const articleCard = document.querySelector('.article-card');
+        const addBtn = document.querySelector('.add-to-cart');
+        // Navbar
+        const cartNumber = document.querySelector('.cart-number');
+        // Popup
+        const popupContainer = document.querySelector('.popup-container');
+        const popupText = document.querySelector('.popup-text');
+        const popupBtn = document.querySelector('.popup-btn');
+
+        // Variables
+        const articleId = document.querySelector('.article-info').dataset.id;
+
+        // Function Call
+        setCart();
+
+        // Event Listeners
+        popupBtn.addEventListener('click', () => {
+            popupContainer.style.display = "none";
+        })
+
+        addBtn.addEventListener('click', () => {
+            // Get Local Cart
+            let cart = JSON.parse(localStorage.getItem('cart'));
+            
+            addBtn.innerHTML = "Adding...";
+            addBtn.style.padding = "1.2rem 0";
+            addBtn.style.fontSize = "1.5rem";
+            
+            setTimeout(() => {
+                if(!cart.includes(articleId) && !articleCard.querySelector('.sold-out2')) {
+                    cart.push(articleId);
+
+                    // Save Cart in Local Storage
+                    saveLocalCart(articleId);
+
+                    addBtn.innerText = "Added!";
+
+                    // Get Local Cart
+                    cart = JSON.parse(localStorage.getItem('cart'));
+                    // Update Navbar Cart Icon
+                    cartNumber.innerText = cart.length;
+
+                } else if(articleCard.querySelector('.sold-out2')) {
+                    popupContainer.querySelector('.icon').classList.remove('fa-circle-check');
+                    popupContainer.querySelector('.icon').classList.add('fa-hourglass-empty');
+                    popupContainer.querySelector('.icon').style.color = "rgb(146, 195, 235)";
+                    popupText.innerText = "Sorry! This article is sold out.";
+                    popupBtn.innerText = "Okay";
+                    popupContainer.style.display = "flex";
+
+                } else {
+                    popupContainer.querySelector('.icon').classList.remove('fa-circle-check');
+                    popupContainer.querySelector('.icon').classList.add('fa-face-rolling-eyes');
+                    popupContainer.querySelector('.icon').style.color = "rgb(146, 195, 235)";
+                    popupText.innerText = "Sorry, we only have 1 of that item available.";
+                    popupBtn.innerText = "Okay";
+                    popupContainer.style.display = "flex";
+                }
+
+                setTimeout(() => {
+                    addBtn.style.padding = "0.8rem 0";
+                    addBtn.style.fontSize = "1.1rem";
+                    addBtn.innerHTML = "Add to cart";
+                }, 2000)
+            }, 1000)
+        })
+
+        // Functions
+        async function getArticleById(id) {
+            const response = await fetch(`/api/json/articles/${id}`);
+            const data = await response.json();
+
+            return data.article;
+        }
+
+        async function setCart() {
+            let cart = [];
+            let localCart = getLocalCart();
+
+            if(localCart.length !== 0) {             
+                for(let i = 0; i < localCart.length; i++) {
+                    const cartArticle = await getArticleById(localCart[i]);
+
+                    if(cartArticle !== null) {
+                        if(cartArticle.isSold === false) {
+                            cart.push(cartArticle._id);
+                        }
+                    }
+                }
+            } else {
+                cart = localCart;
+            }
+
+
+            // Update Navbar's Cart Icon
+            cartNumber.innerText = cart.length;
+            // Set an initial value to Cart in Local Storage
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function getLocalCart() {
+            return JSON.parse(localStorage.getItem('cart')) === null ? [] : JSON.parse(localStorage.getItem('cart'));
+        }
+
+        function saveLocalCart(articleId) {
+            const localCart = JSON.parse(localStorage.getItem('cart'));
+
+            localStorage.setItem('cart', JSON.stringify([...localCart, articleId]));
+        }
+    </script>
+</body>
+</html>

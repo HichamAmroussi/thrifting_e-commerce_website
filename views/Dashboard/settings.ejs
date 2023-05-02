@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %>
+<body>
+    <%- include("./partials/sidebar.ejs") %>
+
+    <div class="main">       
+        <%- include("./partials/navbar.ejs") %>
+
+        <button class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+
+        <main class="settings-container">
+            <h2>Settings</h2>
+            <p>Article Categories:</p>
+            <% if(articleCategories.length !== 0) { %>
+                <ul class="modify-categories-container">
+                    <% articleCategories.forEach((articleCategory) => { %>
+                        <li class="modify-category-container">
+                            <p><%= articleCategory.name.replace(/-/g, " ") %></p>
+                            <button class="settings-btn"><i class="fa-solid fa-pen"></i></button>
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } %>
+        </main>
+    </div>
+
+    <!-- Popup -->
+    <%- include("./partials/popup.ejs") %>
+
+    <script>
+        //--------------- DOM Elements
+        //Sidebar
+        const hamburgerBtn = document.querySelector('.hamburger-btn');
+        const categoriesSection = document.querySelector('.categories-section');
+        const categoriesContainer = document.querySelector('.categories-container');
+        const settingsBtn = document.querySelector('.settingss-btn');
+        //Settings
+        const changeSettingBtns = document.querySelectorAll('.settings-btn');
+        //Popup
+        const popupContainer = document.querySelector('.popup-container');
+
+        //--------------- Variables
+
+
+        //--------------- Function Calls
+        setSidebarBtnClass();
+
+        //--------------- Event Listeners
+        // Modify Article Boutons Event Listeners
+        changeSettingBtns.forEach((btn, index) => {
+            btn.addEventListener('click', (e) => {
+                // DOM Element + Text
+                const settingEl = btn.previousElementSibling;
+                let settingText = settingEl.textContent;
+
+                // Replace the Price Element by an Input
+                settingEl.innerHTML = `
+                    <div class="input-price-wrapper">
+                        <input type="text" style="width: 140px;" class="input-price" value="${settingText}" />
+                        <button class="confirm-price-change"><i class="fa-solid fa-square-check"></i></button>
+                    </div>
+                `;
+
+                // Remove Input Element when Clicking
+                settingEl.querySelector('.confirm-price-change').addEventListener('click', (e) => {
+                    if(!e.target.classList.contains('settings-btn') && !e.target.classList.contains('input-price')) {
+                        // Show popup
+                        popupContainer.style.display = "flex";
+
+                        // Update Article price value
+                        settingText = settingEl.querySelector('.input-price').value;
+                        
+                        settingEl.innerHTML = `<p>${settingText}</p>`;
+
+                        settingText = settingText.replace(/ /g, "-").toLowerCase();
+
+
+                        // Update the New Article Price in the Database
+                        fetch(`/api/json/settings/${index}/${settingText}`, {
+                                method: 'PUT'
+                            })
+                            .then((response) => {
+                                // Remove popup
+                                popupContainer.style.display = "none"
+                            })
+                            .catch((err) => console.log(err));
+                    }
+                })
+            })
+        })
+
+        hamburgerBtn.addEventListener('click', () => {
+            categoriesSection.classList.toggle('show');
+            hamburgerBtn.classList.toggle('translate-btn');
+            categoriesContainer.classList.toggle('show-menu');
+        })
+        categoriesSection.addEventListener('click', (e) => {
+            if(e.target.classList.contains('categories-section')) {
+                categoriesSection.classList.toggle('show');
+                hamburgerBtn.classList.toggle('translate-btn');
+                categoriesContainer.classList.toggle('show-menu');
+            }
+        })
+
+        //--------------- Functions
+        function setSidebarBtnClass() {
+            // Add active class
+            settingsBtn.classList.add('active');
+        }
+        
+    </script>
+</body>
+</html>

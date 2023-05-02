@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %>
+<body>
+    <div class="login-container">
+        <form action="/dashboard/login" method="POST">
+            <input type="text" placeholder="Username" name="username" />
+            <input type="password" placeholder="Password" name="password" />
+            <% if(messages.error) { %>
+                <p><%= messages.error %> </p>
+            <% } %>  
+            <button>Log in</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %>
+<body>
+    <%- include("./partials/sidebar.ejs") %>
+
+    <div class="main">       
+        <div class="orders-container">
+            <button class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1>Orders:</h1>
+                <div class="orders-wrapper">
+                    <div class="menu">
+                        <div>First name</div>
+                        <div>Last name</div>
+                        <div>Address</div>
+                        <div>Wilaya</div>
+                        <div>Phone Number</div>
+                        <div>Shipping Type</div>
+                        <div>Orders</div>
+                        <div>Total</div>
+                    </div>
+                    <div class="circle"></div>
+                </div>
+        </div>
+    </div>
+
+    <!-- Popup -->
+    <%- include("./partials/popup.ejs") %>
+
+    <script>
+        // DOM Elements
+        const ordersWrapper = document.querySelector('.orders-wrapper');
+        const loader = document.querySelector('.circle');
+        const hamburgerBtn = document.querySelector('.hamburger-btn');
+        // Sidebar
+        const categoriesSection = document.querySelector('.categories-section');
+        const categoriesContainer = document.querySelector('.categories-container');
+        const ordersBtn = document.querySelector('.orders-btn');
+        //Popup
+        const popupContainer = document.querySelector('.popup-container');
+
+        // Variables
+
+        // Function Calls
+        setSidebarBtnClass();
+        displayOrders();
+
+        // Event Listeners
+        hamburgerBtn.addEventListener('click', () => {
+            categoriesSection.classList.toggle('show');
+            hamburgerBtn.classList.toggle('translate-btn');
+            categoriesContainer.classList.toggle('show-menu');
+        })
+        categoriesSection.addEventListener('click', (e) => {
+            if(e.target.classList.contains('categories-section')) {
+                categoriesSection.classList.toggle('show');
+                hamburgerBtn.classList.toggle('translate-btn');
+                categoriesContainer.classList.toggle('show-menu');
+            }
+        })
+
+        // Functions
+        async function getArticleById(id) {
+            const response = await fetch(`/api/json/articles/${id}`);
+            const data = await response.json();
+
+            return data.article;
+        }
+
+        async function getOrders() {
+            const response = await fetch("/api/json/orders");
+            const data = await response.json();
+
+            return data.orders;
+        }
+
+        async function showOrders(orderData) {
+            const articleIds = JSON.parse(orderData.articles);
+            const order = document.createElement('div');
+            order.classList.add('an-order');
+
+            if(orderData.isConfirmed) order.classList.add('confirmed');
+
+            order.innerHTML = `
+                <div>${orderData.firstName}</div>
+                <div>${orderData.lastName}</div>
+                <div>${orderData.address}</div>
+                <div>${orderData.wilaya}</div>
+                <div>${orderData.phoneNumber}</div>
+                <div>${orderData.shippingType}</div>
+                <select></select>
+                <div class="total">${orderData.total} DA</div>
+                <div class="order-btns">
+                    <button class="order-btn confirm-order"><i class="fa-solid fa-square-check"></i></button>
+                    <button class="order-btn delete-order"><i class="fa-solid fa-square-xmark"></i></button>
+                    <button class="clear-btn">clear</button>
+                </div>
+            `
+            
+            // DOM Elements (order)
+            const articlesSelect = order.querySelector('select');
+            const deleteOrderBtn = order.querySelector('.delete-order');
+            const confirmOrderBtn = order.querySelector('.confirm-order');
+            const ClearAllBtn = order.querySelector('.clear-btn');
+          
+            // Event Listeners
+            // Set Order as confirmed
+            confirmOrderBtn.addEventListener('click', () => {
+                // Show popup
+                popupContainer.style.display = "flex";
+                
+                const string = encodeURIComponent(orderData.isConfirmed);
+
+                // Set Order as confirmed
+                fetch(`/api/json/orders/${orderData._id}/${string}`, {
+                    method: 'PUT'
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Reload the page with updated Orders
+                        window.location.href = data.redirect;
+                    })
+                    .catch((err) => console.log(err));
+            })
+
+            // Delete Order from Database
+            deleteOrderBtn.addEventListener('click', () => {
+                // Show popup
+                popupContainer.style.display = "flex";
+
+                fetch(`/dashboard/orders/${orderData._id}`, {
+                    method: 'DELETE'
+                })
+                    .then((response) => response.json())
+                    .then((data) => { 
+                        // Set Articles involved in the Order as not Sold
+                        for(let i = 0; i < articleIds.length; i++) {
+                            fetch(`/api/json/articles/${articleIds[i]}`, { method: 'PUT' })
+                                .then(() => {
+                                    if(i === articleIds.length - 1) {
+                                        // Reload the page with updated Orders
+                                        window.location.href = data.redirect;
+                                    }
+                                })
+                                .catch((err) => console.log(err));
+                        }
+                    })
+                    .catch((err) => console.log(err));
+            })
+
+            // Delete Order and All Articles involved in that Order
+            ClearAllBtn.addEventListener('click', () => {
+                // Show popup
+                popupContainer.style.display = "flex";
+
+                fetch(`/dashboard/orders/${orderData._id}`, {
+                    method: 'DELETE'
+                })
+                    .then((response) => response.json())
+                    .then(() => {
+                        // Delete Articles involved in the Order
+                        for(let i = 0; i < articleIds.length; i++) {
+                            fetch(`/dashboard/manage-articles/articles/${articleIds[i]}`, { method: 'DELETE' })
+                                .then(() => {
+                                    if(i === articleIds.length - 1) {
+                                        // Update The Store Data in the database
+                                        fetch(`/api/json/data/${articleIds.length}/${orderData.total}`, { method: 'PUT' })
+                                            .then(() => window.location.href = "/dashboard/orders")
+                                            .catch((err) => console.log(err));
+                                    }
+                                })
+                                .catch((err) => console.log(err));
+                        }
+                    })
+                    .catch((err) => console.log(err));
+            })
+
+            // Show Article Names in the Order
+            for(let i = 0; i < articleIds.length; i++) {
+                const orderedArticle = document.createElement('option');
+                const orderedArticleData = await getArticleById(articleIds[i]);
+
+                if(orderedArticleData !== null) {
+                    orderedArticle.innerText = orderedArticleData.name;
+                } else {
+                    orderedArticle.innerText = "**Error: article deleted**";
+                };
+
+                articlesSelect.appendChild(orderedArticle);
+            }
+
+            // Append Order to Container
+            ordersWrapper.insertBefore(order, loader);
+        }
+
+        async function displayOrders() {
+            // Show Loader
+            loader.style.display = "flex";
+            // Get Orders from Database
+            const ordersData = await getOrders();
+
+            if(ordersData.length === 0) {
+                // Remove Loader
+                loader.style.display = "none";
+                
+            } else if(ordersData.length > 0) {
+                for(let i = 0; i < ordersData.length; i++) {
+                    await showOrders(ordersData[i]);
+                }
+                
+                // Remove Loader
+                loader.style.display = "none";
+            }
+        }
+
+        function setSidebarBtnClass() {
+            // Add active class
+            ordersBtn.classList.add('active');
+        }
+    </script>
+</body>
+</html>

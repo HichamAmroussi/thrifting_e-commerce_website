@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %>
+<body>
+    <!-- Top Navigation Bar -->
+    <%- include("./partials/navbar.ejs") %>
+
+    <div class="cart">
+        <div class="cart-container">
+            <h2>Shopping Cart</h2>
+            <div class="circle"></div>      
+        </div>
+    </div>
+
+    <%- include("./partials/footer.ejs") %> 
+    
+    <script>
+        // DOM elements
+        // Navbar
+        const cartEl = document.querySelector('.cart-container');
+        const cartBtn = document.querySelector('.cart-btn');
+        const cartNumber = document.querySelector('.cart-number');
+        // Variables
+        let total = 0;
+
+        // Function Calls
+        setCart();
+
+        // Functions
+        async function getArticleById(id) {
+            const response = await fetch(`/api/json/articles/${id}`);
+            const data = await response.json();
+
+            return data.article;
+        }
+
+        async function setCart() {
+            let cart = [];
+            let localCart = getLocalCart();
+            let cartArticles = [];
+
+            if(localCart.length !== 0) {             
+                for(let i = 0; i < localCart.length; i++) {
+                    const cartArticle = await getArticleById(localCart[i]);
+
+                    if(cartArticle !== null) {
+                        if(cartArticle.isSold === false) {
+                            cart.push(cartArticle._id);
+                            cartArticles.push(cartArticle);
+                        }
+                    }
+                }
+            } else {
+                cart = localCart;
+            }
+
+            // Update Navbar's Cart Icon
+            cartNumber.innerText = cart.length;
+            // Set an initial value to Cart in Local Storage
+            localStorage.setItem('cart', JSON.stringify(cart));
+            // Display Cart Els
+            displayCart(cartArticles);
+        }
+
+        function getLocalCart() {
+            return JSON.parse(localStorage.getItem('cart')) === null ? [] : JSON.parse(localStorage.getItem('cart'));
+        }
+        
+        function displayCart(articles) {
+            const cartArticles = articles;
+            // Reset total value
+            total = 0;
+
+            if(cartArticles.length === 0) {
+                cartEl.innerHTML = `
+                    <h2>Shopping Cart</h2>
+
+                    <div class="empty-cart">
+                        <p>You have nothing in your shopping cart.</p>
+                        <a href="/">
+                            <button>Continue Shopping</button>
+                        </a>
+                    </div>
+                `; 
+
+            } else if(cartArticles.length > 0) {
+                cartEl.innerHTML = "<h2>Shopping Cart</h2>";
+
+                cartWrapper = document.createElement('div');
+                cartWrapper.classList.add('cart-wrapper');
+
+                for(let i = 0; i < cartArticles.length; i++) {
+                    const article = cartArticles[i];
+
+                    displayArticle(article);
+                }
+
+                cartEl.appendChild(cartWrapper);
+
+                const confirmEl = document.createElement('div');
+                confirmEl.classList.add('confirm');
+                
+                confirmEl.innerHTML = `
+                    <div class="total">
+                        <p>Total</p>
+                        <p>${total} DA</p>
+                    </div>
+                    <a href="/shop/checkout">
+                        <button class="confirm-btn">Confirm</button>
+                    </a>
+                `
+
+                cartEl.appendChild(confirmEl);
+            }
+        }
+
+        function displayArticle(articleData) {
+            // Get Local Cart
+            let cartIds = JSON.parse(localStorage.getItem('cart'));
+            // Update Variable Total
+            total = total + articleData.price;
+
+            const cartItem = document.createElement('div');
+            cartItem.classList.add('cart-item');
+
+            cartItem.innerHTML = `
+                <img 
+                    src=${articleData.image_thumbnail}
+                    alt=${articleData.name}
+                    class="item-image" 
+                />
+                <div class="item-title">
+                    <a href="/shop/${articleData._id}">
+                        ${articleData.name}
+                    </a>
+                </div>
+                <div class="item-price">
+                    ${articleData.price} DA
+                </div>
+                <button class="delete-item">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `
+
+            cartItem.querySelector('.delete-item').addEventListener('click', () => {
+                // Delete Item from Cart
+                cartIds = cartIds.filter((id) => id !== articleData._id);
+                // Save New Cart in Local Storage
+                localStorage.setItem('cart', JSON.stringify(cartIds));
+                // Update Navbar's Cart Icon
+                cartNumber.innerText = cartIds.length;
+
+                // Refresh page with new articles
+                setCart();
+            })
+
+            cartWrapper.appendChild(cartItem);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include("./partials/head.ejs") %> 
+<body>
+    <!-- Top Navigation Bar -->
+    <%- include("./partials/navbar.ejs") %>
+
+    <main class="shop">
+        <!-- Side Menu (Categories) -->
+        <aside class="categories-section">
+            <nav class="categories-container">
+                <button class="show-categories"><i class="fa-solid fa-sort-down"></i></button>
+                <h4>Categories</h4>
+                <ul class="categories" data-cat=<%= category %> >
+                    <li class="category">
+                        <a class="category-btn first-btn" href="/shop">
+                            <i class="icon fa-solid fa-grip-vertical"></i>
+                            <p class="category-name">All</p>
+                        </a>
+                    </li>
+                    <% if(articleCategories.length !== 0) { %>
+                        <% articleCategories.forEach((articleCategory) => { %>
+                            <li class="category">
+                                <a class="category-btn" href=<%= "/shop?category=" + articleCategory.name %>>
+                                    <i class="icon fa-solid fa-ellipsis"></i>
+                                    <p class="category-name"><%= articleCategory.name.replace(/-/g, " ") %></p>
+                                </a>
+                            </li>
+                        <% }) %>
+                    <% } %>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Articles Container or Message Container "Empty Shop" -->
+        <% if(articles.length !== 0) { %>
+            <section class="articles" data-articles="<%= JSON.stringify(articles) %>">
+                <% articles.forEach((article, index) => { %>
+                    <% if(index <= 9) { %>
+                        <a class="article-element" href="/shop/<%= article._id %>">
+                            <figure class="article-header">
+                                <!-- Sign (Sold Out) -->
+                                <% if(article.isSold) { %> 
+                                    <div class="sold-out">SOLD OUT</div>
+                                <% } %>
+                                
+                                <img src="<%- article.image_thumbnail %>" alt="<%= article.name %>" />
+                                
+                                <!-- Button (Add Article) -->
+                                <button class="add-article" data-doc=<%= article._id %> >
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </figure>
+                            <div class="article-body">
+                                <h3 class="article-name"><%= article.name %></h3>
+                                <p>Size <%= article.size %> - <%= article.price %> DA</p>
+                            </div>
+                        </a>
+                    <% } %>
+                <% }) %>
+                
+                <!-- Show More Button -->
+                <% if(articles.length > 10) { %>
+                    <div class="show-more-container">
+                        <button class="show-more-btn">+ Show More</button>
+                    </div>
+                <% } %>
+            </section>
+        <% } else { %>
+            <section class="empty-shop">
+                <p>There is no article available in this category at the moment.</p>
+            </section>
+        <% } %> 
+    </main>
+
+    <!-- Footer -->
+    <%- include("./partials/footer.ejs") %> 
+
+    <!-- Popup -->
+    <%- include("./partials/popup.ejs") %>
+
+    <script>
+        //------------------ DOM elements -------------------
+        const articlesContainer = document.querySelector('.articles');
+        const categories = document.querySelectorAll('.category-name');
+        const showMoreContainer = document.querySelector('.show-more-container');
+        const showMoreBtn = document.querySelector('.show-more-btn');
+        // Navbar
+        const cartNumber = document.querySelector('.cart-number');
+        // Sidebar
+        const categoriesContainer = document.querySelector('.categories-section');
+        const showCategories = document.querySelector('.show-categories');
+        // Popup
+        const popupContainer = document.querySelector('.popup-container');
+        const popupText = document.querySelector('.popup-text');
+        const popupBtn = document.querySelector('.popup-btn');
+        
+        //------------------ Variables -------------------
+        if(articlesContainer) {
+            var articlesData = JSON.parse(articlesContainer.dataset.articles);
+        }
+        let currentArticleItem = 10;
+        const currentCategory = document.querySelector('.categories').dataset.cat;
+
+        //------------------ Function Calls -------------------
+        setCart();
+        highlightCategory();
+        addEventListenersToAddArticleButtons();
+
+        //------------------ Event Listeners -------------------
+        if(showMoreBtn) {
+            showMoreBtn.addEventListener('click', () => {
+                showMoreArticles();
+            }) 
+        }
+
+        showCategories.addEventListener('click', () => {
+            categoriesContainer.classList.toggle('show-menu');
+        })
+        document.addEventListener('click', (e) => {
+            if(!e.target.classList.contains('show-categories') && categoriesContainer.classList.contains('show-menu')) {
+                categoriesContainer.classList.remove('show-menu');
+            }
+        })
+
+        popupBtn.addEventListener('click', () => {
+            popupContainer.style.display = "none";
+        })
+
+        //------------------ Functions -------------------
+        async function getArticleById(id) {
+            const response = await fetch(`/api/json/articles/${id}`);
+            const data = await response.json();
+
+            return data.article;
+        }
+        
+        function highlightCategory() {
+            if(currentCategory) {
+                categories.forEach((category) => {
+                    let buttonText = category.innerText.toLowerCase();
+        
+                    buttonText = buttonText.replace(/ /g, "-");
+                    
+                    if(buttonText === currentCategory) {
+                        category.parentNode.classList.add('active');
+                    }
+                })
+            } else {
+                document.querySelector('.first-btn').classList.add('active');
+            }
+        }
+
+        async function setCart() {
+            let cart = [];
+            let localCart = getLocalCart();
+
+            if(localCart.length !== 0) {             
+                for(let i = 0; i < localCart.length; i++) {
+                    const cartArticle = await getArticleById(localCart[i]);
+
+                    if(cartArticle !== null) {
+                        if(cartArticle.isSold === false) {
+                            cart.push(cartArticle._id);
+                        }
+                    }
+                }
+            } else {
+                cart = localCart;
+            }
+
+            // Update Navbar's Cart Icon
+            cartNumber.innerText = cart.length;
+            // Set an initial value to Cart in Local Storage
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function getLocalCart() {
+            return JSON.parse(localStorage.getItem('cart')) === null ? [] : JSON.parse(localStorage.getItem('cart'));
+        }
+
+        function saveLocalCart(articleId) {
+            const localCart = JSON.parse(localStorage.getItem('cart'));
+
+            localStorage.setItem('cart', JSON.stringify([...localCart, articleId]));
+        }
+
+        function showMoreArticles() {
+            // Show Loader
+            const loader = document.createElement('div');
+            loader.classList.add('circle');
+            showMoreContainer.insertBefore(loader, showMoreBtn);
+
+            // Etract Articles Array Data
+            const articlesArrLength = articlesData.length;
+            const numOfArticlesToAdd = articlesArrLength - currentArticleItem;
+
+            if(numOfArticlesToAdd < 6) {
+                addArticle(numOfArticlesToAdd, articlesData);
+            } else {
+                addArticle(6, articlesData);
+            }
+
+            // Set the Event Listener
+            addEventListenersToAddArticleButtons();
+
+            // Remove Loader
+            showMoreContainer.querySelector('.circle').remove();
+
+            // Set the New Value of the Current Article
+            currentArticleItem += 6;
+
+            // Remove Show More Button if all Available Articles are displayed
+            if(currentArticleItem >= articlesArrLength) {
+                showMoreContainer.remove();
+            }
+        }
+
+        function addArticle(numToAdd, articlesData) {
+            for(let i = currentArticleItem; i < currentArticleItem + numToAdd; i++) {
+                const articleData = articlesData[i];
+
+                const articleEl = document.createElement('a');
+                articleEl.href = `/shop/${articleData._id}`;
+                articleEl.classList.add('article-element');
+
+                articleEl.innerHTML = `
+                    <figure class="article-header">
+                    ${articleData.isSold ? `<div class="sold-out">SOLD OUT</div>` : ""}
+                    
+                    <img src="${articleData.image_thumbnail}" alt="${articleData.name}" />
+                    
+                    <button class="add-article" data-doc=${articleData._id}>
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    </figure>
+                    <div class="article-body">
+                        <h3 class="article-name">${articleData.name}</h3>
+                        <p>Size ${articleData.size} - ${articleData.price} DA</p>
+                    </div>
+                `
+
+                articlesContainer.insertBefore(articleEl, showMoreContainer);
+            }
+        }
+
+        function addEventListenersToAddArticleButtons() {
+            const addBtns = document.querySelectorAll('.add-article');
+            
+            addBtns.forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    // Get Local Cart
+                    const cart = JSON.parse(localStorage.getItem('cart'));
+
+                    const btnParent = btn.parentNode;
+                    const articleId = btn.dataset.doc;
+
+                    if(!cart.includes(articleId) && !btnParent.querySelector('.sold-out')) {
+                        // Save Cart in Local Storage
+                        saveLocalCart(articleId);
+                        // Get Local Cart
+                        const cart = JSON.parse(localStorage.getItem('cart'));
+                        // Update Navbar Cart Icon
+                        cartNumber.innerText = cart.length;
+
+                        // Show popup
+                        popupContainer.querySelector('.icon').classList.remove('fa-hourglass-empty');
+                        popupContainer.querySelector('.icon').classList.remove('fa-face-rolling-eyes');
+                        popupContainer.querySelector('.icon').classList.remove('fa-hand-holding-heart');
+                        popupContainer.querySelector('.icon').classList.add('fa-circle-check');
+                        popupContainer.querySelector('.icon').style.color = "rgb(79, 206, 79)";
+                        popupText.innerText = "Item added to the cart.";
+                        popupBtn.innerText = "Okay";
+                        popupContainer.style.display = "flex";
+
+                    } else if(btnParent.querySelector('.sold-out')) {
+                        // Show popup
+                        popupContainer.querySelector('.icon').classList.remove('fa-circle-check');
+                        popupContainer.querySelector('.icon').classList.remove('fa-face-rolling-eyes');
+                        popupContainer.querySelector('.icon').classList.remove('fa-hand-holding-heart');
+                        popupContainer.querySelector('.icon').classList.add('fa-hourglass-empty');
+                        popupContainer.querySelector('.icon').style.color = "rgb(146, 195, 235)";
+                        popupText.innerText = "Sorry! This article is sold out.";
+                        popupBtn.innerText = "Okay";
+                        popupContainer.style.display = "flex";
+                        
+                    } else {
+                        // Show popup
+                        popupContainer.querySelector('.icon').classList.remove('fa-circle-check');
+                        popupContainer.querySelector('.icon').classList.remove('fa-hourglass-empty');
+                        popupContainer.querySelector('.icon').classList.remove('fa-hand-holding-heart');
+                        popupContainer.querySelector('.icon').classList.add('fa-face-rolling-eyes');
+                        popupContainer.querySelector('.icon').style.color = "rgb(146, 195, 235)";
+                        popupText.innerText = "Sorry, we only have 1 of that item available.";
+                        popupBtn.innerText = "Okay";
+                        popupContainer.style.display = "flex";
+                    }
+                })
+            })
+        }
+    </script>
+</body>
+</html>
