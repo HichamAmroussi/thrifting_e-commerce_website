@@ -14,13 +14,13 @@
 }
 
 body {
-    background-color: rgb(236, 235, 235);
+    background-color: #f7f7f7;
 }
 
 /*------------------------- Navbar Section --------------------------*/
 .navbar {
-    background-color: #554a37;
-    box-shadow: 0 0 8px #38373794;
+    background-color: #f3f3f3;
+    border-bottom: 3.5px solid #dbdbdb;
     font-size: 1.6rem;
     height: 90px;
     display: flex;
@@ -38,6 +38,7 @@ body {
 @media (max-width: 500px) {
     .navbar {
         font-size: 1.25rem;
+        border-bottom: 3px solid #dbdbdb;
         height: 75px;
         display: flex;
         justify-content: space-between;
@@ -112,7 +113,7 @@ body {
 }
 
 .nav-link {
-    color: #fff;
+    color: #1b1b1b;
     text-decoration: none;
     height: 100%;
     padding: 0 1rem;
@@ -137,6 +138,7 @@ body {
 .cart-btn p {
     font-size: 0.95rem;
     font-weight: 600;
+    color: #fff;
     background-color: rgb(230, 62, 62);
     border-radius: 50px;
     width: 22px;
@@ -252,8 +254,8 @@ body {
     height: 450px;
     margin-left: 5px;
     min-width: 220px;
-    background-color: #6e614a;
-    box-shadow: 0 0 8px #38373794;
+    background-color: #867659;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
     border-radius: 5px;
 }
 
@@ -280,7 +282,7 @@ body {
     background-color: transparent;
     outline: none;
     font-size: 1.65rem;
-    color: #cfaf5d;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -303,7 +305,6 @@ body {
 
 .fa-sort-down {
     margin-right: 25px;
-    color: white;
 }
 
 .categories-container h4 {
@@ -352,11 +353,11 @@ body {
 }
 
 .category-btn:hover {
-    color: #0e0e0e;
+    color: #1b1b1b;
 }
 
 .category-btn.active {
-    color: #0e0e0e;
+    color: #1b1b1b;
 }
 
 .category-name::first-letter {
@@ -1610,18 +1611,18 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #cecece;
+    background: #dbdbdb;
 }
   
 ::-webkit-scrollbar-thumb {
-    background: #333333;
+    background: #1b1b1b;
     border-radius: 100vw;
-    border: .35em solid #cecece;
+    border: .35em solid #dbdbdb;
 }
 
 @supports (scrollbar-color: red blue) {
     * {
-        scrollbar-color: #cfaf5d #383737;
+        scrollbar-color: #333333 #dbdbdb;
         scrollbar-width: thin;
     }
 }
