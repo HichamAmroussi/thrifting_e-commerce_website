@@ -1,10 +1,11 @@
 //-----------------------  Packages -------------------------
-const sharp = require('sharp');
 const path = require('path');
 const { unlink } = require('fs/promises');
 //-----------------------  Models ---------------------------
 const Article = require('../models/Article.model');
 const Order = require('../models/Order.model');
+//-----------------------  Utils ----------------------------
+const cloudinary = require('../utils/Cloudinary.util');
 
 //----------------------  Functions -------------------------
 //------------ Login Functions ------------
@@ -55,20 +56,19 @@ const dashboard_create_article = async (req, res) => {
         try {
             const articleData = req.body;
     
-            // Create Thumbnail
-            // Thumbnail File Name
-            const thumbFileName = Date.now() + '--thumbnail' + path.extname(req.files[0].filename).toLowerCase();
-            // Resize Image0 and Save File with its declared File Name
-            await sharp(req.files[0].path)
-                .resize({ width: 600 })
-                .toFile("public/images/article_images/" + thumbFileName);
+            // Uploading the Thumbnail
+            const cloudinaryResult = await cloudinary.uploader.upload(req.files[0].path, { width: 600 });
     
             // Add Thumbnail Property to Article Object
-            articleData["image_thumbnail"] = "/images/article_images/" + thumbFileName;
+            articleData["image_thumbnail"] = cloudinaryResult.secure_url;
+            articleData["image_thumbnail_id"] = cloudinaryResult.public_id;
     
             for(let i = 0; i < req.files.length; i++) {
-                // Add Image Property to Article Object
-                articleData["image" + i] = "/images/article_images/" + req.files[i].filename;
+                const cloudinaryResult = await cloudinary.uploader.upload(req.files[i].path);
+
+                // Add Properties to Article
+                articleData["image" + i] = cloudinaryResult.secure_url;
+                articleData["image" + i + "_id"] = cloudinaryResult.public_id;
             }
     
             // Save Article to Database
