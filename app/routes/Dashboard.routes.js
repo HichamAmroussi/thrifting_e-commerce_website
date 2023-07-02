@@ -43,7 +43,7 @@ router.delete('/logout', dashboardController.dashboard_logout);
 
 //------------ Dashboard Routes ------------
 // Index
-router.get('/dashboard', checkAuthenticated, dashboardController.dashboard_index);
+router.get('/', checkAuthenticated, dashboardController.dashboard_index);
 // Manage Articles
 router.get('/manage-articles', checkAuthenticated, dashboardController.dashboard_manageArticles);
 router.post('/manage-articles', upload.array('article-images', 5) , dashboardController.dashboard_create_article);
