@@ -75,7 +75,11 @@
         }
 
         async function showOrders(orderData) {
+            // Data
             const articleIds = JSON.parse(orderData.articles);
+            let orderState = orderData.isConfirmed;
+
+            // Create Order
             const order = document.createElement('div');
             order.classList.add('an-order');
 
@@ -106,28 +110,29 @@
             // Event Listeners
             // Set Order as confirmed
             confirmOrderBtn.addEventListener('click', () => {
-                // Show popup
-                popupContainer.style.display = "flex";
-                
-                const string = encodeURIComponent(orderData.isConfirmed);
+                // Set the new value to the Variable that Tracks the Confirmed State
+                orderState = !orderState;
+                // Order State Query String
+                const orderStateQueryString = encodeURIComponent(orderState);
 
                 // Set Order as confirmed
-                fetch(`/api/json/orders/${orderData._id}/${string}`, {
+                fetch(`/api/json/orders/${orderData._id}/${orderStateQueryString}`, {
                     method: 'PUT'
                 })
                     .then((response) => response.json())
                     .then((data) => {
-                        // Reload the page with updated Orders
-                        window.location.href = data.redirect;
+                        // Add Or Remove Confirmed Class from the specific Order
+                        if(order.classList.contains('confirmed')) {
+                            order.classList.remove('confirmed');
+                        } else {
+                            order.classList.add('confirmed');
+                        }
                     })
                     .catch((err) => console.log(err));
             })
 
             // Delete Order from Database
             deleteOrderBtn.addEventListener('click', () => {
-                // Show popup
-                popupContainer.style.display = "flex";
-
                 fetch(`/dashboard/orders/${orderData._id}`, {
                     method: 'DELETE'
                 })
@@ -138,8 +143,25 @@
                             fetch(`/api/json/articles/${articleIds[i]}`, { method: 'PUT' })
                                 .then(() => {
                                     if(i === articleIds.length - 1) {
-                                        // Reload the page with updated Orders
-                                        window.location.href = data.redirect;
+                                        // Remove the Order from the UI
+                                        order.remove();                                        
+                                        // Show popup
+                                        popupContainer.style.display = "flex";
+                                        popupContainer.querySelector('p').innerText = "The Order has been deleted and the Articles are available again!";
+                                        
+                                        if(popupContainer.querySelector('.circle2')) {
+                                            popupContainer.querySelector('.circle2').classList.remove('circle2');
+                                            popupContainer.querySelector('p').classList.add('popup-message');
+
+                                            const button = document.createElement('button');
+                                            button.innerText = "Ok";
+
+                                            popupContainer.querySelector('.popup').appendChild(button);
+
+                                            button.addEventListener('click', () => {
+                                                popupContainer.style.display = "none";
+                                            })
+                                        }
                                     }
                                 })
                                 .catch((err) => console.log(err));
@@ -150,9 +172,6 @@
 
             // Delete Order and All Articles involved in that Order
             ClearAllBtn.addEventListener('click', () => {
-                // Show popup
-                popupContainer.style.display = "flex";
-
                 fetch(`/dashboard/orders/${orderData._id}`, {
                     method: 'DELETE'
                 })
@@ -165,7 +184,27 @@
                                     if(i === articleIds.length - 1) {
                                         // Update The Store Data in the database
                                         fetch(`/api/json/data/${articleIds.length}/${orderData.total}`, { method: 'PUT' })
-                                            .then(() => window.location.href = "/dashboard/orders")
+                                            .then(() => {
+                                                // Remove the Order from the UI
+                                                order.remove();                                        
+                                                // Show popup
+                                                popupContainer.style.display = "flex";
+                                                popupContainer.querySelector('p').innerText = "The Order and the Articles has been deleted!";
+
+                                                if(popupContainer.querySelector('.circle2')) {
+                                                    popupContainer.querySelector('.circle2').classList.remove('circle2');
+                                                    popupContainer.querySelector('p').classList.add('popup-message');
+
+                                                    const button = document.createElement('button');
+                                                    button.innerText = "Ok";
+
+                                                    popupContainer.querySelector('.popup').appendChild(button);
+
+                                                    button.addEventListener('click', () => {
+                                                        popupContainer.style.display = "none";
+                                                    })
+                                                }
+                                            })
                                             .catch((err) => console.log(err));
                                     }
                                 })

@@ -84,7 +84,7 @@
             myForm.appendChild(loader);
 
             // Form Data
-            const formData = new FormData(myForm);
+            const formData = new URLSearchParams(new FormData(myForm));
 
             // Checking Articles Availability
             let cart = [];
