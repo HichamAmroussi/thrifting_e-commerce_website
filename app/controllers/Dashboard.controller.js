@@ -1,6 +1,3 @@
-//-----------------------  Packages -------------------------
-const path = require('path');
-const { unlink } = require('fs/promises');
 //-----------------------  Models ---------------------------
 const Article = require('../models/Article.model');
 const Order = require('../models/Order.model');
@@ -120,16 +117,18 @@ const dashboard_delete_article = (req, res) => {
         Article.findByIdAndDelete(id)
             .then(async (response) => {
                 try {
-                    // Delete Thumbnail Image from Server
-                    await unlink("public" + response["image_thumbnail"]);
+                    let imageIds = [];
 
-                    // Delete Article Images from Server
+                    imageIds.push(response["image_thumbnail_id"]);
+
                     for(let i = 0; i <= 4; i++) {
-                        if(response["image" + i]) {
-                            // Delete Image
-                            await unlink("public" + response["image" + i]);
+                        if(response["image" + i + "_id"]) {
+                            imageIds.push(response["image" + i + "_id"]);
                         }
                     }
+
+                    // Delete All Images in Cloudinary 
+                    await cloudinary.api.delete_resources(imageIds);
 
                     res.json({ redirect: "/dashboard/manage-articles/articles" });
 
