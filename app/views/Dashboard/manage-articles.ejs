@@ -58,6 +58,7 @@
     <script>
         //--------------- DOM Elements
         //Form
+        const formContainer = document.querySelector('.form-container');
         const myForm = document.getElementById('myForm');
         const submitBtn = document.querySelector('.submit-btn');
         //Upload Elements
@@ -92,8 +93,8 @@
             req.open('POST', "/dashboard/manage-articles");
 
             req.upload.addEventListener('progress', (e) => {
-                // Show Progress Container
-                submitBtn.remove();
+                // Replace Submit Button by Progress Container
+                submitBtn.style.display = "none";
                 progressContainer.style.display = "flex";
                 
                 const percentComplete = (e.loaded / e.total) * 100;
@@ -103,10 +104,10 @@
             })
 
             req.addEventListener('load', () => {
-                console.log("Upload Complete");
+                //console.log("Upload Complete");
 
-                // Reload the page with updated Articles
-                window.location.href = "/dashboard/manage-articles";
+                // Refresh UI after Upload is Finished
+                clearUI();
             })
 
             req.send(formData);
@@ -137,6 +138,22 @@
         function setSidebarBtnClass() {
             // Add active class
             manageBtn.classList.add('active');
+        }
+
+        function clearUI() {
+            // Replace Submit Button by Progress Container
+            submitBtn.style.display = "block";
+            progressContainer.style.display = "none";
+
+            // Clear All Inputs
+            myForm.reset();
+            uploadTextEl.innerText = "Browse Photos to Upload";
+            
+            // Create Notification
+            const notification = document.createElement('div');
+            notification.classList.add('added-article-notification');
+            notification.innerHTML = "Article Added!";
+            formContainer.appendChild(notification);
         }
 
     </script>

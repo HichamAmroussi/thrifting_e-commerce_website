@@ -784,6 +784,33 @@ body {
     cursor: pointer;
 }
 
+.added-article-notification {
+    text-align: center;
+    color: #fff;
+    background-color: #242424a6;
+    border-radius: 20px;
+    position: absolute;
+    top: 0;
+    left: 150px;
+    right: 0;
+    width: 30%;
+    margin: auto;
+    padding: 3rem 0;
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    animation: disappear 3.5s ease-in-out;
+}
+@media (max-width: 500px) {
+    .added-article-notification {
+        padding: 2.2rem 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 60%;
+    }
+}
+
 /*-------------------------------- Article List Section -----------------------------------*/
 .articles-container {
     width: 100%;
@@ -1818,5 +1845,19 @@ body {
     }
     100% {
         opacity: 0;
+    }
+}
+
+@keyframes disappear {
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+        top: 100px;
+    }
+    100% {
+        opacity: 0;
+        top: 100px;
     }
 }
