@@ -513,14 +513,14 @@ body {
     }
 }
 
-.form-container h4 {
+.manage-articles-title {
     text-align: center;
     color: #8F6260;
     font-size: 2rem;
     margin-bottom: 2.1rem;
 }
 @media (max-width: 500px) {
-    .form-container h4 {
+    .manage-articles-title {
         font-size: 1.8rem;
         margin-top: 0.7rem;
         margin-bottom: 2.05rem;
@@ -772,16 +772,27 @@ body {
 
 .article-list-btn {
     text-decoration: none;
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     color: #fff;
-    margin: 3rem 0;
-    padding: 0.5rem 2.1rem;
+    padding: 0.5rem 1.2rem;
     background-color: #383737;
-    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     cursor: pointer;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+@media screen and (max-width: 1250px) {
+    .article-list-btn {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        top: 10px;
+        right: 6px;
+    }
 }
 
 .added-article-notification {
@@ -1068,19 +1079,19 @@ body {
     grid-row: 3 / 4;
     padding: 0 3vw;
     padding-bottom: 6vh;
-    height: 100%;
     width: 100%;
     display: grid;
-    justify-content: center;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 300px));
-    justify-content: start;
-    grid-gap: 3vh 2vw;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 30px 1.6vw;
 }
-
-@media (max-width: 800px) {
+@media (max-width: 1600px) {
     .articles {
-        grid-template-columns: repeat(auto-fit, minmax(90px, 130px));
-        grid-gap: 9px 19px;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    }
+}
+@media (max-width: 1024px) {
+    .articles {
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     }
 }
 @media (max-width: 500px) {
@@ -1773,10 +1784,11 @@ body {
 }
 
 .popup-container .popup {
+    text-align: center;
+    background-color: #FEFFFE;
+    border-radius: 10px;
     height: 265px;
     width: 560px;
-    background: #FEFFFE;
-    border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1790,6 +1802,40 @@ body {
         width: 95%;
         gap: 10px;
     }  
+}
+
+.popup-container .popup-message {
+    margin: 1.3rem 3rem;
+}
+
+@media (max-width: 500px) {
+    .popup-container .popup-message {
+        margin: 0.8rem 0.9rem;
+    }  
+}
+
+.popup-container button {
+    width: 60%;
+    cursor: pointer;
+    border: none;
+    background-color: #242424;
+    color: #fff;
+    font-size: 1.1rem;
+    padding: 0.8rem 0;
+    transition: all 0.5s ease;
+}
+
+@media (max-width: 500px) {
+    .popup-container button {
+        width: 50%;
+        font-size: 0.93rem;
+        padding: 0.6rem 0;
+    }  
+}
+
+.popup-container button:hover {
+    background-color: #dbdbdb;
+    color: #242424;
 }
 
 /* Loading Animation */
