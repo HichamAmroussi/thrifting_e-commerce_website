@@ -16,12 +16,12 @@ const shop_index = async (req, res) => {
 
         if (requestedCategory) {
             // Get Articles from DB
-            const articles = await Article.find({ category: requestedCategory }).sort({ isSold: 1, createdAt: -1 }).exec();
+            const articles = await Article.find({ isPending: { $ne: true }, category: requestedCategory }).sort({ isSold: 1, createdAt: -1 }).exec();
 
             res.render('./Shop/index', { title: "Shop", articles: articles, articleCategories: settings.articleCategories, category: requestedCategory });
         } else {
             // Get Articles from DB
-            const articles = await Article.find().sort({ isSold: 1, createdAt: -1 }).exec();
+            const articles = await Article.find({ isPending: { $ne: true } }).sort({ isSold: 1, createdAt: -1 }).exec();
 
             res.render('./Shop/index', { title: "Shop", articles: articles, articleCategories: settings.articleCategories, category: undefined });
         }

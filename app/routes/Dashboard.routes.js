@@ -46,12 +46,12 @@ router.delete('/logout', dashboardController.dashboard_logout);
 router.get('/', checkAuthenticated, dashboardController.dashboard_index);
 // Manage Articles
 router.get('/manage-articles', checkAuthenticated, dashboardController.dashboard_manageArticles);
-router.post('/manage-articles', upload.array('article-images', 5) , dashboardController.dashboard_create_article);
+router.post('/manage-articles', upload.array('article-images', 5), dashboardController.dashboard_create_article);
 router.get('/manage-articles/articles', checkAuthenticated, dashboardController.dashboard_articles);
-router.delete('/manage-articles/articles/:id', dashboardController.dashboard_delete_article)
+router.delete('/manage-articles/articles/:id', dashboardController.dashboard_delete_article);
 // Orders
 router.get('/orders', checkAuthenticated, dashboardController.dashboard_orders);
-router.delete('/orders/:id', dashboardController.dashboard_delete_order)
+router.delete('/orders/:id', dashboardController.dashboard_delete_order);
 // Settings
 router.get('/settings', checkAuthenticated, dashboardController.dashboard_settings);
 

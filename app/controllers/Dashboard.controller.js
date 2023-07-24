@@ -96,12 +96,12 @@ const dashboard_articles = async (req, res) => {
 
         if(requestedCategory) {
             // Get Articles from DB
-            const articles = await Article.find({ category: requestedCategory }).sort({ createdAt: -1 }).exec();
+            const articles = await Article.find({ isPending: { $ne: true }, category: requestedCategory }).sort({ createdAt: -1 }).exec();
 
             res.render('./Dashboard/article-list', { title: "Article List", articles: articles, articleCategories: settings.articleCategories, category: requestedCategory });
         } else {
             // Get Articles from DB
-            const articles = await Article.find().sort({ createdAt: -1 }).exec();
+            const articles = await Article.find({ isPending: { $ne: true } }).sort({ createdAt: -1 }).exec();
             
             res.render('./Dashboard/article-list', { title: "Article List", articles: articles, articleCategories: settings.articleCategories, category: undefined });
         }

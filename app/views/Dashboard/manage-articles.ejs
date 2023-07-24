@@ -6,7 +6,7 @@
 
     <main class="main">
         <!-- Form Container -->
-        <div class="form-container">
+        <section class="form-container">
             <button class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
 
             <h4 class="manage-articles-title">Add Article</h4>
@@ -46,7 +46,16 @@
                     <label for="progress-bar">0%</label>
                 </div>
             </form>
-        </div>
+        </section>
+
+        <!-- Pending Article Space -->
+        <section class="pending-articles">
+            <h4 class="manage-articles-title">Pending Articles</h4>
+            <div class="articles">
+                <div class="circle"></div>
+            </div>
+            <button class="launch-btn">Launch</button>
+        </section>
 
         <!-- Article List Button -->
         <a class="article-list-btn" href="/dashboard/manage-articles/articles">
@@ -54,6 +63,9 @@
             <i class="fa-solid fa-circle-right"></i>
         </a>
     </main>
+
+    <!-- Popup -->
+    <%- include("./partials/popup.ejs") %>
 
     <script>
         //--------------- DOM Elements
@@ -68,16 +80,29 @@
         //Progress Bar
         const progressContainer = document.querySelector('.progress-container'); 
         const progressBar = document.querySelector('.progress-bar');
+        //Pending Articles Space
+        const pendingArticlesContainer = document.querySelector('.articles');
+        const pendingArticlesLoadingAnim = pendingArticlesContainer.querySelector('.circle');
+        const launchBtn = document.querySelector('.launch-btn');
         //Sidebar
         const hamburgerBtn = document.querySelector('.hamburger-btn');
         const categoriesSection = document.querySelector('.categories-section');
         const categoriesContainer = document.querySelector('.categories-container');
         const manageBtn = document.querySelector('.manage-btn');
+        //Popup
+        const popupContainer = document.querySelector('.popup-container');
+        const popupIcone = popupContainer.querySelector('.popup-icone');
+        const popupMessage = popupContainer.querySelector('p');
+
+        //--------------- Variables
         
         //--------------- Function Calls
         setSidebarBtnClass();
+        showPendingArticles();
         
         //--------------- Event Listeners
+        launchBtn.addEventListener('click', launchArticles);
+
         myForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -108,18 +133,16 @@
 
                 // Refresh UI after Upload is Finished
                 clearUI();
+                // Refresh Pending Articles List
+                showPendingArticles();
             })
 
             req.send(formData);
         })
 
-        uploadBtn.addEventListener('click', () => {
-            fileInput.click();
-        })
+        uploadBtn.addEventListener('click', () => fileInput.click());
 
-        fileInput.addEventListener('change', (e) => {
-            uploadTextEl.innerText = `${e.target.files.length} Photos selected`;
-        })
+        fileInput.addEventListener('change', (e) => uploadTextEl.innerText = `${e.target.files.length} Photos selected`);
 
         hamburgerBtn.addEventListener('click', () => {
             categoriesSection.classList.toggle('show');
@@ -135,6 +158,67 @@
         })
 
         //--------------- Functions
+        async function getPendingArticles() {
+            const api = await fetch('/api/json/articles?p=y');
+            const data = await api.json();
+
+            return data.articles;
+        }
+        
+        async function showPendingArticles() {
+            // Clear Pending Articles Container
+            pendingArticlesContainer.innerHTML = "";
+            
+            // Show Loading Animation
+            pendingArticlesLoadingAnim.style.display = "block";
+
+            const articlesData = await getPendingArticles();
+
+            if(articlesData.length > 0) {
+                // Remove Loading Animation
+                pendingArticlesLoadingAnim.style.display = "none";
+
+                articlesData.forEach((article) => {
+                    const articleEl = document.createElement('div');
+                    articleEl.classList.add("article-element");
+
+                    articleEl.innerHTML = `
+                        <button class="remove-article" title="Delete Article" data-id="${article._id}"><i class="fa-solid fa-circle-xmark"></i></button>
+                        <figure class="article-header">
+                            <img src=${article.image_thumbnail} alt=${article.name} />
+                        </figure>
+                        <div class="article-body">
+                            <h3 class="article-name">${article.name}</h3>
+                            <p>${article.price} DA</p>
+                            ${/*<button class="settings-btn" data-id="${article._id}"><i class="fa-solid fa-gear"></i></button>*/''}
+                        </div>
+                    `
+                    
+                    articleEl.querySelector('.remove-article').addEventListener('click', async () => {
+                        // Delete Article in the DB
+                        await fetch(`/dashboard/manage-articles/articles/${article._id}`, { method: 'DELETE' });
+
+                        // Refresh Pending Articles Container
+                        showPendingArticles();
+                    })
+
+
+                    pendingArticlesContainer.appendChild(articleEl);
+                })
+
+            } else {
+                // Remove Loading Animation
+                pendingArticlesLoadingAnim.style.display = "none";
+
+                // Show Message
+                const emptyPending = document.createElement('div');
+                emptyPending.innerText = "No Pending Articles."
+                emptyPending.style.textAlign = "center";
+                emptyPending.style.gridColumn = "1 / 5";
+                pendingArticlesContainer.appendChild(emptyPending);
+            }
+        }
+
         function setSidebarBtnClass() {
             // Add active class
             manageBtn.classList.add('active');
@@ -156,6 +240,39 @@
             formContainer.appendChild(notification);
         }
 
+        async function launchArticles() {
+            const articles = document.querySelectorAll('.article-element');
+
+            if(articles.length !== 0) {
+                // Show Popup
+                popupContainer.style.display = "flex";
+
+                // Turn The Articles from Pending to not Pending in DB / Remove Newest Status to Other Articles
+                await fetch('/api/json/articles', { method: 'PUT' });
+
+                // Refresh Pending Articles List
+                showPendingArticles();
+
+                // Update Popup Message
+                popupIcone.classList.remove('circle2');
+                popupIcone.innerHTML = '<i class="fa-brands fa-get-pocket"></i>';
+                popupIcone.style.fontSize = "3rem";
+                popupIcone.style.color = "#00DFA2";
+                popupMessage.innerText = "Articles have been launched successfully!";
+                popupContainer.querySelector('.popup').style.gap = "1px";
+
+                const closeBtn = document.createElement('button');
+                closeBtn.innerText = "Ok";
+                closeBtn.style.marginTop = "15px";
+
+                popupContainer.querySelector('button') ? popupContainer.querySelector('button').remove() : "";
+                popupContainer.querySelector('.popup').appendChild(closeBtn);
+
+                closeBtn.addEventListener('click', () => {
+                    popupContainer.style.display = "none";
+                })
+            }
+        }
     </script>
 </body>
 </html>

@@ -6,11 +6,18 @@ const Order = require('../models/Order.model');
 // Get all Articles
 const api_get_articles = async (req, res) => {
     try {
+        const pending = req.query.p;
+
         if (req.isAuthenticated()) {
-            const articles = await Article.find().exec();
-
-            res.json({ articles: articles });
-
+            if(pending) {
+                const articles = await Article.find({ isPending: true }).exec();
+    
+                res.json({ articles: articles });
+            } else {
+                const articles = await Article.find().exec();
+    
+                res.json({ articles: articles });
+            }
         } else {
             res.send("Access denied.");
         }
@@ -29,6 +36,26 @@ const api_get_article = (req, res) => {
             res.json({ article: response });
         })
         .catch((err) => console.log(err));
+}
+
+const api_update_articles = async (req, res) => {
+    if (req.isAuthenticated()) {
+        try {
+            const id = req.params.id;
+
+            // Set Newest Articles as not Newest anymore
+            await Article.updateMany({ isPending: false, isNewest: true }, { isNewest: false });
+            // Set Pending Articles as not Pending
+            await Article.updateMany({ isPending: true }, { isPending: false });
+
+            res.json({});
+
+        } catch(err) {
+            console.log(err);
+        }
+    } else {
+        res.send("Access denied.");
+    }
 }
 
 // Update Article Sold State
@@ -162,6 +189,7 @@ const api_update_store_settings = (req, res) => {
 module.exports = {
     api_get_articles,
     api_get_article,
+    api_update_articles,
     api_update_article_isSold,
     api_update_article_price,
     api_get_orders,
