@@ -43,6 +43,10 @@
                                 <% if(article.isSold) { %> 
                                     <div class="sold-out">SOLD OUT</div>
                                 <% } %>
+                                <!-- Sign (New) -->
+                                <% if(article.isNewest) { %> 
+                                    <div class="new">NEW</div>
+                                <% } %>
                                 
                                 <img src="<%- article.image_thumbnail %>" alt="<%= article.name %>" />
                                 

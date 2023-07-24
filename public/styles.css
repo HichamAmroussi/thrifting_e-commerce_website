@@ -496,6 +496,46 @@ body {
     }  
 }
 
+.new {
+    text-align: center;
+    background-color: #4cc44c;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0 0.2rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    font-family: inherit;
+    height: 7.3vh;
+    width: 6.2vw;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+@media (max-width: 1400px) {
+    .new {
+        top: 5px;
+        right: 5px;
+        font-size: 1.1rem;
+        height: 5.9vh;
+        width: 90px;
+    }  
+}
+
+@media (max-width: 800px) {
+    .new {
+        top: 3px;
+        right: 3px;
+        height: 30px;
+        width: 50px;
+        font-size: 0.9rem;
+    }  
+}
+
 .articles img {
     position: absolute;
     top: 0;
