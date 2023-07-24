@@ -28,23 +28,30 @@ const articleSchema = new Schema({
     },
     image1: {
         type: String,
-        default: ""
     },
     image2: {
         type: String,
-        default: ""
     },
     image3: {
         type: String,
-        default: ""
     },
     image4: {
         type: String,
-        default: ""
     },
     isSold: {
         type: Boolean,
-        default: false
+        default: false,
+        required: true
+    },
+    isPending: {
+        type: Boolean,
+        default: true,
+        required: true
+    },
+    isNewest: {
+        type: Boolean,
+        default: true,
+        required: true
     }
 }, { timestamps: true });
 
