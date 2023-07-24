@@ -147,7 +147,7 @@
                                         order.remove();                                        
                                         // Show popup
                                         popupContainer.style.display = "flex";
-                                        popupContainer.querySelector('p').innerText = "The Order has been deleted and the Articles are available again!";
+                                        popupContainer.querySelector('p').innerText = "The Order has been deleted and the Products are available again!";
                                         
                                         if(popupContainer.querySelector('.circle2')) {
                                             popupContainer.querySelector('.circle2').classList.remove('circle2');
@@ -189,7 +189,7 @@
                                                 order.remove();                                        
                                                 // Show popup
                                                 popupContainer.style.display = "flex";
-                                                popupContainer.querySelector('p').innerText = "The Order and the Articles has been deleted!";
+                                                popupContainer.querySelector('p').innerText = "The Order and the Products have been deleted!";
 
                                                 if(popupContainer.querySelector('.circle2')) {
                                                     popupContainer.querySelector('.circle2').classList.remove('circle2');
@@ -222,7 +222,7 @@
                 if(orderedArticleData !== null) {
                     orderedArticle.innerText = orderedArticleData.name;
                 } else {
-                    orderedArticle.innerText = "**Error: article deleted**";
+                    orderedArticle.innerText = "**Error: product deleted**";
                 };
 
                 articlesSelect.appendChild(orderedArticle);

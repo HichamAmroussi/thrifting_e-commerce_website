@@ -9,7 +9,7 @@
         <section class="form-container">
             <button class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
 
-            <h4 class="manage-articles-title">Add Article</h4>
+            <h4 class="manage-articles-title">Add Product</h4>
 
             <!-- Form -->
             <form id="myForm">
@@ -50,7 +50,7 @@
 
         <!-- Pending Article Space -->
         <section class="pending-articles">
-            <h4 class="manage-articles-title">Pending Articles</h4>
+            <h4 class="manage-articles-title">Pending Products</h4>
             <div class="articles">
                 <div class="circle"></div>
             </div>
@@ -59,7 +59,7 @@
 
         <!-- Article List Button -->
         <a class="article-list-btn" href="/dashboard/manage-articles/articles">
-            <p>Article List</p>
+            <p>Product List</p>
             <i class="fa-solid fa-circle-right"></i>
         </a>
     </main>
@@ -212,7 +212,7 @@
 
                 // Show Message
                 const emptyPending = document.createElement('div');
-                emptyPending.innerText = "No Pending Articles."
+                emptyPending.innerText = "No Pending Products."
                 emptyPending.style.textAlign = "center";
                 emptyPending.style.gridColumn = "1 / 5";
                 pendingArticlesContainer.appendChild(emptyPending);
@@ -236,7 +236,7 @@
             // Create Notification
             const notification = document.createElement('div');
             notification.classList.add('added-article-notification');
-            notification.innerHTML = "Article Added!";
+            notification.innerHTML = "Product Added!";
             formContainer.appendChild(notification);
         }
 
@@ -258,7 +258,7 @@
                 popupIcone.innerHTML = '<i class="fa-brands fa-get-pocket"></i>';
                 popupIcone.style.fontSize = "3rem";
                 popupIcone.style.color = "#00DFA2";
-                popupMessage.innerText = "Articles have been launched successfully!";
+                popupMessage.innerText = "Products have been launched successfully!";
                 popupContainer.querySelector('.popup').style.gap = "1px";
 
                 const closeBtn = document.createElement('button');
